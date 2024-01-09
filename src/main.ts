@@ -114,7 +114,7 @@ function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(images[currentImageIndex], 0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = "red";
-  selectedAreas.forEach((area, index) => {
+  selectedAreas.forEach((area) => {
     ctx.strokeRect(area.x, area.y, area.width, area.height);
   });
   updateSelectedAreasList();
