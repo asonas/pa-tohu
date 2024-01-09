@@ -62,9 +62,9 @@ function drawImage(index: number) {
     canvas.height = img.height * scaleFactor;
 
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    redrawCanvas();
   }
 }
-
 function navigateImage(direction: number) {
   const newIndex = currentImageIndex + direction;
   if (newIndex >= 0 && newIndex < images.length) {
@@ -97,10 +97,32 @@ function endDrag() {
 function redrawCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(images[currentImageIndex], 0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = 'red';
-  selectedAreas.forEach(area => {
+  ctx.strokeStyle = "red";
+  selectedAreas.forEach((area, index) => {
     ctx.strokeRect(area.x, area.y, area.width, area.height);
   });
+  updateSelectedAreasList();
+}
+
+function updateSelectedAreasList() {
+  const listElement = document.getElementById("selectedAreasList")!;
+  listElement.innerHTML = ""; // リストをクリア
+  selectedAreas.forEach((area, index) => {
+    const areaElement = document.createElement("div");
+    areaElement.innerText = `Area ${index + 1}: (${area.x}, ${area.y}) - ${
+      area.width
+    }x${area.height}`;
+    const deleteButton = document.createElement("button");
+    deleteButton.innerText = "Delete";
+    deleteButton.addEventListener("click", () => deleteArea(index));
+    areaElement.appendChild(deleteButton);
+    listElement.appendChild(areaElement);
+  });
+}
+
+function deleteArea(index: number) {
+  selectedAreas.splice(index, 1); // 指定されたインデックスの領域を削除
+  redrawCanvas(); // キャンバスとリストを更新
 }
 
 function cropImage() {
@@ -129,10 +151,6 @@ function cropImage() {
       originalArea.height
     );
 
-    // ここで各クロップされた画像を処理する
     document.getElementById("croppedImages")!.appendChild(croppedCanvas);
   });
-
-  selectedAreas = [];
-  redrawCanvas();
 }
