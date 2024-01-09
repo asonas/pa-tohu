@@ -1,17 +1,25 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
-  </head>
-  <body>
-    <input type="file" multiple id="imageInput">
-    <canvas id="canvas"></canvas>
-    <img id="resultImage" style="display: none;"/>
-    <button id="cropButton">Crop</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Image Cropper for Multiple Images</title>
+  <link rel="stylesheet" href="/src/main.css">
+</head>
+<body>
+  <div class="flex m-1">
+    <section>
+      <div class="ui">
+        <input type="file" multiple id="imageInput">
+        <button id="prevButton">Previous Image</button>
+        <button id="nextButton">Next Image</button>
+      </div>
+      <canvas id="canvas"></canvas>
+    </section>
 
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <section>
+      <button id="cropButton">Crop</button>
+      <img id="resultImage" style="display: none;"/>
+    </section>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>

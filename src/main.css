@@ -1,0 +1,11 @@
+body {
+  padding: 10px;
+}
+
+.flex {
+  display: flex;
+}
+
+.m-1 {
+  margin: 1rem;
+}
