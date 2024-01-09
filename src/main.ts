@@ -27,6 +27,7 @@ document
 document
   .getElementById("cropButton")!
   .addEventListener("click", cropImage, false);
+document.getElementById("downloadButton")!.addEventListener("click", downloadImage, false);
 canvas.addEventListener("mousedown", startDrag, false);
 canvas.addEventListener("mousemove", drag, false);
 canvas.addEventListener("mouseup", endDrag, false);
@@ -128,6 +129,8 @@ function updateSelectedAreasList() {
       area.width
     }x${area.height}`;
     const deleteButton = document.createElement("button");
+    deleteButton.classList.add("btn");
+    deleteButton.classList.add("btn-danger");
     deleteButton.innerText = "Delete";
     deleteButton.addEventListener("click", () => deleteArea(index));
     areaElement.appendChild(deleteButton);
@@ -136,11 +139,15 @@ function updateSelectedAreasList() {
 }
 
 function deleteArea(index: number) {
-  selectedAreas.splice(index, 1); // 指定されたインデックスの領域を削除
-  redrawCanvas(); // キャンバスとリストを更新
+  selectedAreas.splice(index, 1);
+  redrawCanvas();
 }
 
 function cropImage() {
+  const combinedCanvas = document.createElement("canvas");
+  let totalHeight = 0;
+  let maxWidth = 0;
+
   selectedAreas.forEach((area) => {
     const scaleFactor = MAX_WIDTH / images[currentImageIndex].width;
     const originalArea = {
@@ -150,22 +157,79 @@ function cropImage() {
       height: area.height / scaleFactor,
     };
 
-    const croppedCanvas = document.createElement("canvas");
-    croppedCanvas.width = originalArea.width;
-    croppedCanvas.height = originalArea.height;
-    const croppedCtx = croppedCanvas.getContext("2d")!;
-    croppedCtx.drawImage(
+    totalHeight += originalArea.height;
+    maxWidth = Math.max(maxWidth, originalArea.width);
+  });
+
+  combinedCanvas.width = maxWidth;
+  combinedCanvas.height = totalHeight;
+  const combinedCtx = combinedCanvas.getContext("2d")!;
+
+  let currentY = 0;
+  selectedAreas.forEach((area) => {
+    // 各画像を描画
+    const scaleFactor = MAX_WIDTH / images[currentImageIndex].width;
+    const originalArea = {
+      x: area.x / scaleFactor,
+      y: area.y / scaleFactor,
+      width: area.width / scaleFactor,
+      height: area.height / scaleFactor,
+    };
+
+    combinedCtx.drawImage(
       images[currentImageIndex],
       originalArea.x,
       originalArea.y,
       originalArea.width,
       originalArea.height,
       0,
-      0,
+      currentY,
       originalArea.width,
       originalArea.height
     );
 
-    document.getElementById("croppedImages")!.appendChild(croppedCanvas);
+    document.getElementById("croppedImages")!.appendChild(combinedCanvas);
+    currentY += originalArea.height;
   });
+}
+
+function downloadImage() {
+  const croppedCanvases = document
+    .getElementById("croppedImages")!
+    .getElementsByTagName("canvas");
+  const numOfCanvases = croppedCanvases.length;
+
+  if (numOfCanvases === 0) {
+    console.error("No cropped images to combine.");
+    return;
+  }
+
+  let totalHeight = 0;
+  let maxWidth = 0;
+
+  Array.from(croppedCanvases).forEach((canvas) => {
+    totalHeight += canvas.height;
+    maxWidth = Math.max(maxWidth, canvas.width);
+  });
+
+  const combinedCanvas = document.createElement("canvas");
+  combinedCanvas.width = maxWidth;
+  combinedCanvas.height = totalHeight;
+  const combinedCtx = combinedCanvas.getContext("2d")!;
+
+  let currentY = 0;
+  Array.from(croppedCanvases).forEach((canvas) => {
+    combinedCtx.drawImage(canvas, 0, currentY);
+    currentY += canvas.height;
+  });
+
+  const dataURL = combinedCanvas.toDataURL("image/jpeg");
+
+  const downloadLink = document.createElement("a");
+  downloadLink.href = dataURL;
+  downloadLink.download = "combined_image.jpg";
+  downloadLink.innerText = "Download Combined Image";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
 }
