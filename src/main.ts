@@ -5,7 +5,7 @@ interface Rectangle {
   height: number;
 }
 
-const MAX_WIDTH: number = 600;
+const MAX_WIDTH: number = 750;
 let canvas: HTMLCanvasElement = document.getElementById(
   "canvas"
 ) as HTMLCanvasElement;
