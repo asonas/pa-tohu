@@ -33,10 +33,21 @@ canvas.addEventListener("mouseup", endDrag, false);
 
 function handleFileSelect(event: Event) {
   const files = (event.target as HTMLInputElement).files!;
-  console.log(files);
   images = [];
-  Array.from(files).forEach((file) => {
+
+  const sortedFiles = Array.from(files).sort((a, b) =>
+    a.name < b.name ? -1 : 1
+  );
+  console.log(sortedFiles);
+
+  function readFile(index: number) {
+    if (index >= sortedFiles.length) {
+      return;
+    }
+
+    const file = sortedFiles[index];
     const reader = new FileReader();
+
     reader.onload = function (e: ProgressEvent<FileReader>) {
       let img = new Image();
       img.onload = () => {
@@ -44,11 +55,15 @@ function handleFileSelect(event: Event) {
         if (images.length === 1) {
           drawImage(0);
         }
+        readFile(index + 1);
       };
       img.src = e.target!.result as string;
     };
+
     reader.readAsDataURL(file);
-  });
+  }
+
+  readFile(0);
 }
 
 function drawImage(index: number) {
