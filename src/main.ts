@@ -72,52 +72,47 @@ function navigateImage(direction: number) {
   }
 }
 
+let selectedAreas: Rectangle[] = [];
+
 function startDrag(event: MouseEvent) {
-  selectedArea.x = event.offsetX;
-  selectedArea.y = event.offsetY;
-  selectedArea.width = 0;
-  selectedArea.height = 0;
+  selectedArea = { x: 0, y: event.offsetY, width: canvas.width, height: 0 };
   isDragging = true;
 }
 
 function drag(event: MouseEvent) {
   if (isDragging) {
-    selectedArea.width = event.offsetX - selectedArea.x;
     selectedArea.height = event.offsetY - selectedArea.y;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // 現在選択されている画像を描画
-    let img = images[currentImageIndex];
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = "red";
-    ctx.strokeRect(
-      selectedArea.x,
-      selectedArea.y,
-      selectedArea.width,
-      selectedArea.height
-    );
+    redrawCanvas();
   }
 }
 
 function endDrag() {
+  if (isDragging && selectedArea.height > 0) {
+    selectedAreas.push({ ...selectedArea });
+    redrawCanvas();
+  }
   isDragging = false;
 }
 
-function cropImage() {
-  if (selectedArea.width > 0 && selectedArea.height > 0) {
-    // 縮小表示のスケールを計算
-    const scaleFactor = MAX_WIDTH / images[currentImageIndex].width;
+function redrawCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(images[currentImageIndex], 0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'red';
+  selectedAreas.forEach(area => {
+    ctx.strokeRect(area.x, area.y, area.width, area.height);
+  });
+}
 
-    // 元の解像度に合わせて選択範囲を調整
+function cropImage() {
+  selectedAreas.forEach((area) => {
+    const scaleFactor = MAX_WIDTH / images[currentImageIndex].width;
     const originalArea = {
-      x: selectedArea.x / scaleFactor,
-      y: selectedArea.y / scaleFactor,
-      width: selectedArea.width / scaleFactor,
-      height: selectedArea.height / scaleFactor,
+      x: area.x / scaleFactor,
+      y: area.y / scaleFactor,
+      width: area.width / scaleFactor,
+      height: area.height / scaleFactor,
     };
 
-    // 元の解像度の画像でクロップ
     const croppedCanvas = document.createElement("canvas");
     croppedCanvas.width = originalArea.width;
     croppedCanvas.height = originalArea.height;
@@ -134,7 +129,10 @@ function cropImage() {
       originalArea.height
     );
 
-    document.getElementById("resultImage")!.src = croppedCanvas.toDataURL();
-    document.getElementById("resultImage")!.style.display = "block";
-  }
+    // ここで各クロップされた画像を処理する
+    document.getElementById("croppedImages")!.appendChild(croppedCanvas);
+  });
+
+  selectedAreas = [];
+  redrawCanvas();
 }
